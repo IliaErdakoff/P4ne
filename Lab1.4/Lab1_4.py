@@ -9,6 +9,8 @@ class IPv4RandomNetwork(ipaddress.IPv4Network):
 
     def regular(self):
         return self.is_global
+
+
 i=0
 while i <= 10:
     g = (IPv4RandomNetwork())

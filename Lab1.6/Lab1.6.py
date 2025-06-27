@@ -15,4 +15,3 @@ for file in listfiles:
 for ip in ipaddress_new:
     print(ip)
 
-
