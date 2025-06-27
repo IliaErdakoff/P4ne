@@ -1,36 +1,29 @@
 import asyncio
-from pysnmp.hlapi.v3arch.asyncio import *
-
+from pysnmp.hlapi.asyncio import *
 
 async def run():
-    snmpEngine = SnmpEngine()
+       # Получение всех интерфейсов из таблицы
+    iterator = next_cmd(SnmpEngine(),
+                        CommunityData('public'),
+                        await UdpTransportTarget.create(('10.31.70.209', 161)),
+                        ContextData(),
+                        ObjectType(ObjectIdentity('1.3.6.1.2.1.2.2.1.2')))
 
-    iterator = get_cmd(
-        snmpEngine,
-        CommunityData("public", mpModel=0),
-        await UdpTransportTarget.create(('10.31.70.209', 161)),
-        ContextData(),
-        ObjectType(ObjectIdentity('1.3.6.1.2.1.2.2.1.2')),
-    )
+    # Прочитываем результат с помощью await
+    results = await iterator
 
-    errorIndication, errorStatus, errorIndex, varBinds = await iterator
+    # Распаковываем результаты
+    errorIndication, errorStatus, errorIndex, varBinds = results
 
     if errorIndication:
         print(errorIndication)
-
     elif errorStatus:
-        print(
-            "{} at {}".format(
-                errorStatus.prettyPrint(),
-                errorIndex and varBinds[int(errorIndex) - 1][0] or "?",
-            )
-        )
+        print('%s at %s' % (errorStatus.prettyPrint(),
+                            errorIndex and varBinds[int(errorIndex)-1][0] or '?'))
     else:
         for varBind in varBinds:
-            print(" = ".join([x.prettyPrint() for x in varBind]))
-
-    snmpEngine.close_dispatcher()
-
+            oid, val = varBind
+            print("%s = %s" % (oid.prettyPrint(), val.prettyPrint()))
 
 asyncio.run(run())
 
